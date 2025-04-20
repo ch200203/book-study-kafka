@@ -1,0 +1,10 @@
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+spring:
+  kafka:
+    consumer:
+      group-id: test-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
