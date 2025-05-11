@@ -16,7 +16,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: EXTERNAL
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      # KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: "tUeiYSM4QW2qCFizw1jz8Q"
     networks:
       - kafka_network
@@ -31,12 +31,12 @@ services:
       KAFKA_NODE_ID: 2
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka1:19093,2@kafka2:19093,3@kafka3:19093"
-      KAFKA_LISTENERS: EXTERNAL://0.0.0.0:19092,CONTROLLER://0.0.0.0:19093
+      KAFKA_LISTENERS: EXTERNAL://0.0.0.0:19092,CONTROLLER://0.0.0.0:19092
       KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:19093
       KAFKA_INTER_BROKER_LISTENER_NAME: EXTERNAL
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      # KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: "tUeiYSM4QW2qCFizw1jz8Q"
     networks:
       - kafka_network
@@ -56,7 +56,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: EXTERNAL
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      # KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: "tUeiYSM4QW2qCFizw1jz8Q"
     networks:
       - kafka_network
@@ -66,11 +66,14 @@ services:
     container_name: kafka-ui-1
     ports:
       - "8989:8080"
+    restart: always
     environment:
       KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: localhost:19092,localhost:19093,localhost:19094
-    networks:
-      - kafka_network
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:19092,kafka2:19093,kafka3:19094
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
 
 networks:
   kafka_network:

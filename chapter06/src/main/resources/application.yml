@@ -1,0 +1,23 @@
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+spring:
+  kafka:
+    # bootstrap-servers: localhost:9092,localhost:9093,localhost:9094
+    consumer:
+      group-id: test-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # batch-size: 16384 # 배치 크기 (16KB)
+      # acks: all # ack = 0, 1, all
+      # buffer-memory: 33554432 # 총 버퍼 메모리 (32MB)
+      # compression-type: gzip # 압축 (gzip, snappy, lz4, zstd 가능)
+
+      # 트랜잭션 ID (트랜잭션 기반 전송 시 필요)
+      retries: 10
+
+
