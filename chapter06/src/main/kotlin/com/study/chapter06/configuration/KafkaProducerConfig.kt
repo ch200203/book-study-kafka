@@ -1,20 +1,20 @@
 package com.study.chapter06.configuration
 
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
-import org.springframework.kafka.core.ConsumerFactory
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
+import org.springframework.kafka.transaction.KafkaTransactionManager
 
 @Configuration
-class KafkaConfig {
+class KafkaProducerConfig {
+
+    companion object {
+        const val bootstrapServers = "localhost:19092, localhost:19093, localhost:19094"
+    }
 
     // 여기서 여러개의 팩토리를 지정해서 사용가능함
     @Bean
@@ -22,7 +22,7 @@ class KafkaConfig {
         DefaultKafkaProducerFactory(
             mapOf(
                 // 필수로 작성 필요 bootStrapServer, Serializer
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:19092",
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
 
@@ -46,7 +46,7 @@ class KafkaConfig {
     fun fastProducerFactory(): ProducerFactory<String, String> =
         DefaultKafkaProducerFactory(
             mapOf(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:19092",
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                 ProducerConfig.ACKS_CONFIG to "1", // 빠른 전송
@@ -66,7 +66,7 @@ class KafkaConfig {
     fun safeProducerFactory(): ProducerFactory<String, String> =
         DefaultKafkaProducerFactory(
             mapOf(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:19092",
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                 ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to true,
@@ -82,32 +82,41 @@ class KafkaConfig {
         transactionIdPrefix = "safe-tx-"
     }
 
-
+    // 트랜잭션 테스트를 위한 프로듀서 팩토리
+    /**
+     * Exactly Once 전송용 ProducerFactory
+     */
     @Bean
-    fun consumerFactory(): ConsumerFactory<String, String> =
-        DefaultKafkaConsumerFactory(
+    fun exactlyOnceProducerFactory(): ProducerFactory<String, String> =
+        DefaultKafkaProducerFactory<String, String>(
             mapOf(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to "localhost:19092",
-                ConsumerConfig.GROUP_ID_CONFIG to "test-group",
-                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-                // ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
 
-                // 격리 수준
-                ConsumerConfig.DEFAULT_ISOLATION_LEVEL to "read_committed",
+
+                ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to true,
+                ProducerConfig.ACKS_CONFIG to "all",
+                ProducerConfig.RETRIES_CONFIG to Int.MAX_VALUE,
+                ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION to 5,
+                ProducerConfig.TRANSACTIONAL_ID_CONFIG to "tx-id"
             )
         )
 
+    /**
+     * Exactly Once KafkaTemplate (트랜잭션 사용)
+     */
     @Bean
-    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> =
-        ConcurrentKafkaListenerContainerFactory<String, String>().apply {
-            consumerFactory = consumerFactory()
+    fun exactlyOnceKafkaTemplate(): KafkaTemplate<String, String> =
+        KafkaTemplate(exactlyOnceProducerFactory()).apply {
+            transactionIdPrefix = "exactly-tx"
         }
 
-    @Bean("batchKafkaListenerContainerFactory")
-    fun batchKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> =
-        ConcurrentKafkaListenerContainerFactory<String, String>().apply {
-            consumerFactory = consumerFactory()
-            isBatchListener = true // 배치 수신 모드 활성화
-        }
+    /**
+     * 트랜잭션 매니저 (Spring @Transactional 또는 Listener 트랜잭션용)
+     */
+    @Bean
+    open fun kafkaTransactionManager(): KafkaTransactionManager<String, String> =
+        KafkaTransactionManager(exactlyOnceProducerFactory())
+
 }

@@ -17,4 +17,15 @@ class KafkaSendController(
         sampleProducer.send(topic, message)
         return ResponseEntity.ok("Sent to $topic")
     }
+
+    @PostMapping("/send/exactly")
+    fun sendExactly(
+        @RequestParam topic: String,
+        @RequestParam message: String,
+        @RequestParam key: String
+    ): ResponseEntity<String> {
+        sampleProducer.sendTransactional(topic, key, message)
+        return ResponseEntity.ok("Sent to $topic")
+    }
+
 }
