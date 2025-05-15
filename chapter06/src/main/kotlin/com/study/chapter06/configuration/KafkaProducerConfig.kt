@@ -94,7 +94,6 @@ class KafkaProducerConfig {
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
 
-
                 ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to true,
                 ProducerConfig.ACKS_CONFIG to "all",
                 ProducerConfig.RETRIES_CONFIG to Int.MAX_VALUE,

@@ -55,10 +55,9 @@ class SampleConsumer(
         val offsets = mapOf(
             TopicPartition(record.topic(), record.partition()) to OffsetAndMetadata(record.offset() + 1)
         )
+
         kafkaTemplate.sendOffsetsToTransaction(offsets, ConsumerGroupMetadata("exactly-once-group"))
 
         log.info("Exactly-once handled: ${record.value()}")
     }
-
-
 }
