@@ -1,0 +1,25 @@
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+spring:
+  application:
+    name: consumer-app
+  kafka:
+    # ???? docker-compose.yml? ??? ?? ?? ??? ??
+    bootstrap-servers: localhost:19092,localhost:19093,localhost:19094
+    consumer:
+      group-id: stock-trade-group-1
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+      properties:
+        # ???? docker-compose.yml? ??? Schema Registry ??? ??
+        schema.registry.url: http://localhost:18081
+        specific.avro.reader: true
+
+server:
+  port: 8080 # ????? ?? ?? ??
+
+
+
