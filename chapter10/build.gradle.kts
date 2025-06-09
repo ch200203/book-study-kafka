@@ -17,12 +17,14 @@ java {
 
 repositories {
     mavenCentral()
+    maven("https://packages.confluent.io/maven")
 }
 
 dependencies {
     // kafka schema
-    // avro-4k 를 사용하기 위해서는 버전확인 필수(https://github.com/avro-kotlin/avro4k)
-    implementation("com.github.avro-kotlin.avro4k:avro4k-core:${avro4kVersion}")
+    // avro-4k를 사용하기 위해서는 버전확인 필수(https://github.com/avro-kotlin/avro4k)
+    implementation("org.apache.avro:avro:1.12.0")
+    implementation("io.confluent:kafka-avro-serializer:7.9.0")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
