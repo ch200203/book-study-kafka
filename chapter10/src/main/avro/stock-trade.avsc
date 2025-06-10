@@ -1,0 +1,13 @@
+{
+  "namespace": "com.example.avro.schema",
+  "type": "record",
+  "name": "StockTrade",
+  "doc": "주식거래예시",
+  "fields": [
+    { "name": "ticker", "type": "string", "doc": "주식 종목 코드" },
+    { "name": "quantity", "type": "int", "doc": "거래 수량" },
+    { "name": "price", "type": "double", "doc": "거래 가격" },
+    { "name": "tradeType", "type": { "type": "enum", "name": "TradeType", "symbols": ["BUY", "SELL"] }, "doc": "거래 종류" },
+    { "name": "tradeTimestamp", "type": { "type": "long", "logicalType": "timestamp-millis" }, "doc": "거래 시각 (UTC)" }
+  ]
+}

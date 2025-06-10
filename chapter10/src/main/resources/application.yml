@@ -6,20 +6,26 @@ spring:
   application:
     name: consumer-app
   kafka:
-    # ???? docker-compose.yml? ??? ?? ?? ??? ??
     bootstrap-servers: localhost:19092,localhost:19093,localhost:19094
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: http://localhost:18081
     consumer:
-      group-id: stock-trade-group-1
+      group-id: test-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # Value Deserializer를 KafkaAvroDeserializer로 지정
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
-        # ???? docker-compose.yml? ??? Schema Registry ??? ??
+        # Schema Registry URL 지정
         schema.registry.url: http://localhost:18081
+        # Avro가 GenericRecord가 아닌 특정 클래스(StockTrade)로 역직렬화되도록 설정
         specific.avro.reader: true
 
 server:
-  port: 8080 # ????? ?? ?? ??
+  port: 8080
 
 
 
