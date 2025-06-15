@@ -86,6 +86,7 @@ services:
     networks:
       - kafka_network
 
+  # 스키마 레지스트리 설정
   schema-registry:
     image: confluentinc/cp-schema-registry:7.4.0
     depends_on:
@@ -101,6 +102,33 @@ services:
       SCHEMA_REGISTRY_DEBUG: true # DEBUG 모드 활성화
     networks:
       - kafka_network
+
+    # kafka connect 설정
+    connect:
+      image: confluentinc/cp-kafka-connect:7.5.0
+      container_name: kafka-connect
+      depends_on:
+        - kafka1
+        - schema-registry
+      ports:
+        - "8083:8083"  # Kafka Connect REST API
+      environment:
+        CONNECT_BOOTSTRAP_SERVERS: kafka1:19091
+        CONNECT_REST_PORT: 8083
+        CONNECT_GROUP_ID: "connect-cluster"
+        CONNECT_CONFIG_STORAGE_TOPIC: connect-configs
+        CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
+        CONNECT_STATUS_STORAGE_TOPIC: connect-status
+        CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+        CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+        CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:18081
+        CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:18081
+        CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/jars
+        volumes:
+          - ./connect-plugins:/etc/kafka-connect/jars
+        networks:
+          - kafka_network
+
 
 networks:
   kafka_network:
