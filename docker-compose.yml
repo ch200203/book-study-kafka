@@ -83,6 +83,9 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:19091,kafka2:19091,kafka3:19091
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:18081 # 스키마 레지스트리 연결
+      # 카프카 커넥트 연결
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: kafka-connect
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
     networks:
       - kafka_network
 
@@ -103,32 +106,30 @@ services:
     networks:
       - kafka_network
 
-    # kafka connect 설정
-    connect:
-      image: confluentinc/cp-kafka-connect:7.5.0
-      container_name: kafka-connect
-      depends_on:
-        - kafka1
-        - schema-registry
-      ports:
-        - "8083:8083"  # Kafka Connect REST API
-      environment:
-        CONNECT_BOOTSTRAP_SERVERS: kafka1:19091
-        CONNECT_REST_PORT: 8083
-        CONNECT_GROUP_ID: "connect-cluster"
-        CONNECT_CONFIG_STORAGE_TOPIC: connect-configs
-        CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
-        CONNECT_STATUS_STORAGE_TOPIC: connect-status
-        CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
-        CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-        CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:18081
-        CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:18081
-        CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/jars
-        volumes:
-          - ./connect-plugins:/etc/kafka-connect/jars
-        networks:
-          - kafka_network
-
+  # kafka connect 설정
+  connect:
+    image: confluentinc/cp-kafka-connect:7.5.0
+    container_name: kafka-connect
+    depends_on:
+      - kafka1
+      # - schema-registry
+    ports:
+      - "8083:8083"  # Kafka Connect REST API
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka1:19091
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: "connect-cluster"
+      CONNECT_CONFIG_STORAGE_TOPIC: connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: connect-status
+      CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:18081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:18081
+      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/jars
+    networks:
+      - kafka_network
 
 networks:
   kafka_network:
